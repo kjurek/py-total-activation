@@ -5,7 +5,7 @@ import logging
 logging.basicConfig(format='%(levelname)s:%(message)s', level=logging.DEBUG)
 
 
-class TotalActivationTool(object):
+class TotalActivation(object):
     def __init__(self):
         # Method_time: 'B', 'S' or 'W'
         # Method_space: 'S', 'T', None
@@ -74,4 +74,4 @@ class TotalActivationTool(object):
 
 
 if __name__ == '__main__':
-    ta = TotalActivationTool()
+    ta = TotalActivation()
