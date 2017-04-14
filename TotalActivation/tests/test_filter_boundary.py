@@ -2,10 +2,10 @@ import numpy as np
 
 from TestBase import TestBase
 from TotalActivation.filters.filter_boundary import filter_boundary_normal, filter_boundary_transpose
-
+import unittest
 
 class TestFilterBoundary(TestBase):
-    def TestFilterBoundaryNormal(self):
+    def test_FilterBoundaryNormal(self):
         input = np.array([[1, 5, 2, 4, 3, 3, 1, 5, 2, 4, 3, 3], [5, 10, 3, 3, 4, 5, 7, 8, 10, 15, 12, 11]]).T
         hrfparam = dict(den=np.array([np.array([1.00000000e+00, -6.80326819e-06]), np.array([1.])]),
                         num=np.array([1., -2.63916543, 2.67845911, -1.27148905, 0.24074467, -0.00854931]))
@@ -23,8 +23,7 @@ class TestFilterBoundary(TestBase):
                                     [4.44847937, 8.65805982]])
         np.testing.assert_allclose(filter_boundary_normal(hrfparam, input), expected_output)
 
-
-    def TestFilterBoundaryTranspose(TestBase):
+    def test_FilterBoundaryTranspose(TestBase):
         input = np.array([[1, 5, 2, 4, 3, 3, 1, 5, 2, 4, 3, 3], [5, 10, 3, 3, 4, 5, 7, 8, 10, 15, 12, 11]]).T
         hrfparam = dict(den=np.array([np.array([1.00000000e+00, -6.80326819e-06]), np.array([1.])]),
                         num=np.array([1., -2.63916543, 2.67845911, -1.27148905, 0.24074467, -0.00854931]))
