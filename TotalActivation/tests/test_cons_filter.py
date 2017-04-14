@@ -1,6 +1,7 @@
-from filters.cons import cons
-from TestBase import TestBase
 import numpy as np
+
+from TestBase import TestBase
+from TotalActivation.filters.cons import cons
 
 
 class TestConsFilter(TestBase):
