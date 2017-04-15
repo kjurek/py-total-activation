@@ -8,6 +8,7 @@ logging.basicConfig(format='%(levelname)s:%(message)s', level=logging.DEBUG)
 
 __all__ = ["TotalActivation"]
 
+
 class TotalActivation(object):
     def __init__(self):
         # Method_time: 'B', 'S' or 'W'
@@ -97,7 +98,6 @@ class TotalActivation(object):
         self.atlas = atlas_masker.transform(a)
         logging.debug('self.data.shape={}'.format(self.data.shape))
         logging.debug('self.atlas.shape={}'.format(self.atlas.shape))
-
 
 
 if __name__ == '__main__':
