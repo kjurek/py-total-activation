@@ -1,7 +1,10 @@
 from __future__ import absolute_import, division, print_function
-import scipy.io as sio
-import numpy as np
+
 import logging
+
+import numpy as np
+import scipy.io as sio
+
 from TotalActivation.filters import hrf
 
 logging.basicConfig(format='%(levelname)s:%(message)s', level=logging.DEBUG)
