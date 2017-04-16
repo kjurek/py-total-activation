@@ -11,36 +11,39 @@ def mad(X, axis=0):
     """
     Median absolute deviation
 
-    :param X:
-    :return:
+    :param X: Input matrix
+    ;param axis: Axis to calculate quantity (default = 0)
+    :return: MAD for X along axis
     """
 
-    y = np.median(np.abs(X - np.median(X, axis=axis)), axis=axis)
-    return y
+    return np.median(np.abs(X - np.median(X, axis=axis)), axis=axis)
 
 
-def wiener(X, hrfparam, config):
+def wiener(X, hrfparam, l, n_vox, n_tp):
+    """
+    Perform Wiener-based temporal deconvolution.
+
+    :param X: time x voxels matrix
+    :param hrfparam: HRF parameters
+    :param l: Lambda
+    ;param n_vox: number of voxels
+    ;param n_tp: number of time points
+    :return: Deconvolved time series
     """
 
-    :param X:
-    :param hrfparam:
-    :param config:
-    :return:
-    """
 
+    f_num = np.abs(np.fft.fft(hrfparam[0]['num'], n_tp) ** 2)
 
-    f_num = np.abs(np.fft.fft(hrfparam[0]['num'], 200) ** 2)
-
-    f_den = np.abs(np.fft.fft(hrfparam[0]['den'][0], 200) * \
-                   np.fft.fft(hrfparam[0]['den'][1], 200) * \
+    f_den = np.abs(np.fft.fft(hrfparam[0]['den'][0], n_tp) * \
+                   np.fft.fft(hrfparam[0]['den'][1], n_tp) * \
                    t.hrfparams[0]['den'][-1] * \
-                   np.exp(np.arange(1, 201) * (t.hrfparams[0]['den'][1].shape[0] - 1) / 200)) ** 2
+                   np.exp(np.arange(1, n_tp+1) * (t.hrfparams[0]['den'][1].shape[0] - 1) / n_tp)) ** 2
 
     _, coef = pywt.wavedec(X, 'db3', level=1, axis=0)
-    lambda_temp = mad(coef) * config['Lambda'] ** 2 * 200
+    lambda_temp = mad(coef) * l ** 2 * n_tp
 
-    res = np.real(np.fft.ifft(np.fft.fft(X) * (np.repeat(f_den, 10).reshape(200, 10) / (
-        np.repeat(f_den, 10).reshape(200, 10) + np.kron(f_num, lambda_temp).reshape(200, 10))), axis=1))
+    res = np.real(np.fft.ifft(np.fft.fft(X) * (np.repeat(f_den, n_vox).reshape(n_tp, n_vox) / (
+        np.repeat(f_den, n_vox).reshape(n_tp, n_vox) + np.kron(f_num, lambda_temp).reshape(n_tp, n_vox))), axis=1))
 
     return res
 

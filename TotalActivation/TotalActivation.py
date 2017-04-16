@@ -64,10 +64,6 @@ class TotalActivation(object):
     def _temporal(self):
         """
         Temporal regularization.
-
-        :param X:
-        :param hrfparam:
-        :return:
         """
 
         if config['Method_time'] == 'B' or config['Method_time'] == 'S':
@@ -80,8 +76,6 @@ class TotalActivation(object):
     def _spatial(self):
         """
         Spatial regularization.
-
-        :return:
         """
 
         print("Spatial regularization not yet implemented")
