@@ -69,7 +69,7 @@ class TotalActivation(object):
         if config['Method_time'] == 'B' or config['Method_time'] == 'S':
             print("Methods not yet implemented")
         elif config['Method_time'] == 'W':
-            self.deconvolved_ = wiener(self.data, self.hrfparams[0], self.config)
+            self.deconvolved_ = wiener(self.data, self.hrfparams[0], self.config['Lambda'], self.n_voxels, self.n_tp)
         else:
             print("Wrong temporal deconvolution method; must be B, S or W")
 
