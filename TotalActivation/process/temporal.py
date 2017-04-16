@@ -20,7 +20,7 @@ def mad(X, axis=0):
     return np.median(np.abs(X - np.median(X, axis=axis)), axis=axis)
 
 
-def wiener(X, hrfparam, l, n_vox, n_tp):
+def wiener(X, hrfparam, Lambda, n_vox, n_tp):
     """
     Perform Wiener-based temporal deconvolution.
 
@@ -40,7 +40,7 @@ def wiener(X, hrfparam, l, n_vox, n_tp):
                    np.exp(np.arange(1, n_tp + 1) * (t.hrfparams[0]['den'][1].shape[0] - 1) / n_tp)) ** 2
 
     _, coef = pywt.wavedec(X, 'db3', level=1, axis=0)
-    lambda_temp = mad(coef) * l ** 2 * n_tp
+    lambda_temp = mad(coef) * Lambda ** 2 * n_tp
 
     res = np.real(np.fft.ifft(np.fft.fft(X) * (np.repeat(f_den, n_vox).reshape(n_tp, n_vox) / (
         np.repeat(f_den, n_vox).reshape(n_tp, n_vox) + np.kron(f_num, lambda_temp).reshape(n_tp, n_vox))), axis=1))
