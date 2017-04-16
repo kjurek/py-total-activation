@@ -7,6 +7,7 @@ import pywt
 
 logging.basicConfig(format='%(levelname)s:%(message)s', level=logging.DEBUG)
 
+
 def mad(X, axis=0):
     """
     Median absolute deviation
@@ -31,13 +32,12 @@ def wiener(X, hrfparam, l, n_vox, n_tp):
     :return: Deconvolved time series
     """
 
-
     f_num = np.abs(np.fft.fft(hrfparam[0]['num'], n_tp) ** 2)
 
     f_den = np.abs(np.fft.fft(hrfparam[0]['den'][0], n_tp) * \
                    np.fft.fft(hrfparam[0]['den'][1], n_tp) * \
                    t.hrfparams[0]['den'][-1] * \
-                   np.exp(np.arange(1, n_tp+1) * (t.hrfparams[0]['den'][1].shape[0] - 1) / n_tp)) ** 2
+                   np.exp(np.arange(1, n_tp + 1) * (t.hrfparams[0]['den'][1].shape[0] - 1) / n_tp)) ** 2
 
     _, coef = pywt.wavedec(X, 'db3', level=1, axis=0)
     lambda_temp = mad(coef) * l ** 2 * n_tp
@@ -46,4 +46,3 @@ def wiener(X, hrfparam, l, n_vox, n_tp):
         np.repeat(f_den, n_vox).reshape(n_tp, n_vox) + np.kron(f_num, lambda_temp).reshape(n_tp, n_vox))), axis=1))
 
     return res
-
