@@ -70,7 +70,7 @@ class TotalActivation(object):
         if self.config['Method_time'] is 'B' or self.config['Method_time'] is 'S':
             _, coef = pywt.wavedec(self.data, 'db3', level=1, axis=0)
             lambda_temp = mad(coef) * self.config['Lambda']
-            self.deconvolved_, NoiseEstimateFin, LambdasTempFin, CostTemp = \
+            self.deconvolved_, noiseEstimateFin, lambdasTempFin, costTemp = \
                 temporal_TA(self.data, self.hrfparams[0], self.hrfparams[2], self.n_tp, self.t_iter,
                                             noise_estimate_fin=None, lambda_temp=lambda_temp, cost_save=False)
         elif config['Method_time'] is 'W':
