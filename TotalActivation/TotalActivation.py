@@ -7,9 +7,12 @@ import scipy.io as sio
 import pywt
 import time
 
+from joblib import Parallel, delayed
+
 from TotalActivation.filters import hrf
-from TotalActivation.process.temporal import wiener, temporal_TA, mad
+from TotalActivation.process.temporal import wiener
 from TotalActivation.process.spatial import tikhonov
+from TotalActivation.process.utils import parallel_temporalTA
 
 logging.basicConfig(format='%(levelname)s:%(message)s', level=logging.DEBUG)
 
@@ -72,11 +75,17 @@ class TotalActivation(object):
         """
 
         if self.config['Method_time'] is 'B' or self.config['Method_time'] is 'S':
-            _, coef = pywt.wavedec(d, 'db3', level=1, axis=0)
-            lambda_temp = mad(coef) * self.config['Lambda']
-            self.deconvolved_, noiseEstimateFin, lambdasTempFin, costTemp = \
-                temporal_TA(d, self.hrfparams[0], self.hrfparams[2], self.n_tp, self.t_iter,
-                            noise_estimate_fin=None, lambda_temp=lambda_temp, cost_save=self.cost_save)
+            # _, coef = pywt.wavedec(d, 'db3', level=1, axis=0)
+            # lambda_temp = mad(coef) * self.config['Lambda']
+            voxels = np.arange(self.n_voxels)
+            tempmem = np.memmap('temp.mmap', dtype=float, shape=(self.n_tp, self.n_voxels), mode="w+")
+
+            Parallel(n_jobs=2)(
+                delayed(parallel_temporalTA)(d, tempmem, x, self.config['Lambda'], self.hrfparams[0], self.hrfparams[2],
+                                             self.n_tp, self.t_iter, self.cost_save)
+                for x in np.split(voxels, 2))
+
+            self.deconvolved_ = tempmem
 
         elif self.config['Method_time'] is 'W':
             self.deconvolved_ = wiener(d, self.hrfparams[0], self.config['Lambda'], self.n_voxels, self.n_tp)
@@ -116,6 +125,8 @@ class TotalActivation(object):
             t0 = time.time()
             k = 0
             while k < 5:
+
+
                 print("Iteration %d of 10" % (k + 1))
                 print("Temporal...")
                 self._temporal(TC_OUT - xT + self.data)
