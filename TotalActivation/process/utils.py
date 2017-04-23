@@ -3,6 +3,7 @@ import numpy as np
 
 from temporal import temporal_TA
 
+
 def mad(X, axis=0):
     """
     Median absolute deviation
@@ -13,6 +14,7 @@ def mad(X, axis=0):
     """
 
     return np.median(np.abs(X - np.median(X, axis=axis)), axis=axis)
+
 
 def parallel_temporalTA(input, output, voxels, l, f_Analyze, maxeig, n_tp, t_iter, cost_save):
     """
@@ -25,5 +27,5 @@ def parallel_temporalTA(input, output, voxels, l, f_Analyze, maxeig, n_tp, t_ite
     """
 
     output[:, voxels] = temporal_TA(input, f_Analyze, maxeig, n_tp, t_iter,
-                                    noise_estimate_fin=None, l = l, cost_save=cost_save,
+                                    noise_estimate_fin=None, cost_save=cost_save, l=l,
                                     voxels=voxels)

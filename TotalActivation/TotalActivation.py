@@ -4,10 +4,11 @@ import logging
 
 import numpy as np
 import scipy.io as sio
-import pywt
 import time
 
+import joblib
 from joblib import Parallel, delayed
+
 
 from TotalActivation.filters import hrf
 from TotalActivation.process.temporal import wiener
@@ -40,6 +41,8 @@ class TotalActivation(object):
         self.n_tp = 0
         self.cost_save = False
         self.masking = False
+        self.n_jobs = -2
+        self.n_iter = 5
 
         self._get_hrf_parameters()
 
@@ -80,10 +83,15 @@ class TotalActivation(object):
             voxels = np.arange(self.n_voxels)
             tempmem = np.memmap('temp.mmap', dtype=float, shape=(self.n_tp, self.n_voxels), mode="w+")
 
-            Parallel(n_jobs=2)(
+            if self.n_jobs < 0:
+                n_splits = joblib.cpu_count() + self.n_jobs + 1
+            else:
+                n_splits = self.n_jobs
+
+            Parallel(n_jobs=self.n_jobs)(
                 delayed(parallel_temporalTA)(d, tempmem, x, self.config['Lambda'], self.hrfparams[0], self.hrfparams[2],
                                              self.n_tp, self.t_iter, self.cost_save)
-                for x in np.split(voxels, 2))
+                for x in np.array_split(voxels, n_splits))
 
             self.deconvolved_ = tempmem
 
@@ -124,10 +132,10 @@ class TotalActivation(object):
             xS = np.zeros_like(self.data)
             t0 = time.time()
             k = 0
-            while k < 5:
+            while k < self.n_iter:
 
 
-                print("Iteration %d of 10" % (k + 1))
+                print("Iteration %d of %d" % (k + 1, self.n_iter))
                 print("Temporal...")
                 self._temporal(TC_OUT - xT + self.data)
                 xT += self.deconvolved_ - TC_OUT
