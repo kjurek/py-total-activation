@@ -11,7 +11,7 @@ from joblib import Parallel, delayed
 
 from TotalActivation.filters import hrf
 from TotalActivation.process.temporal import wiener
-from TotalActivation.process.spatial import tikhonov, strspr, strspr_vec
+from TotalActivation.process.spatial import tikhonov, strspr_vec
 from TotalActivation.preprocess.input import load_nifti, load_nifti_nomask, load_matlab_data, load_text_data
 from TotalActivation.process.parallel import parallel_temporalTA
 
@@ -31,6 +31,7 @@ class TotalActivation(object):
         self.method_space = method_space
         self.hrf = hrf
         self.Lambda = Lambda
+        self.LambdaSpace = None
         self.cost_save = cost_save
         self.n_jobs = -2
         self.n_iter = 5
@@ -138,7 +139,7 @@ class TotalActivation(object):
         if self.method_space is 'T':
             self.deconvolved_ = tikhonov(d, a, self.data_masker, iter=self.s_iter)
         elif self.method_space is 'S':
-            self.deconvolved_ = strspr_vec(d, a, self.data_masker, iter=self.s_iter, Lambda=self.Lambda)
+            self.deconvolved_ = strspr_vec(d, a, self.data_masker, iter=self.s_iter, Lambda=self.LambdaSpace)
         else:
             print("This spatial regularization method is not yet implemented")
 
@@ -156,7 +157,28 @@ class TotalActivation(object):
             self._temporal(self.data)
             print("Done in %d seconds!" % (time.time() - t0))
         elif self.method_space is 'S':
-            print("Structured sparsity spatial regularization not yet implemented")
+            self.s_iter = 100
+            self.n_iter = 5
+            self.LambdaSpace = 10
+
+            TC_OUT = np.zeros_like(self.data)
+            xT = np.zeros_like(self.data)
+            xS = np.zeros_like(self.data)
+            t0 = time.time()
+            k = 0
+            while k < self.n_iter:
+                print("Iteration %d of %d" % (k + 1, self.n_iter))
+                print("Temporal...")
+                self._temporal(TC_OUT - xT + self.data)
+                xT += self.deconvolved_ - TC_OUT
+                print("Spatial...")
+                self._spatial(TC_OUT, TC_OUT - xS + self.data)
+                xS += self.deconvolved_ - TC_OUT
+                TC_OUT = 0.5 * xT + 0.5 * xS
+                k += 1
+            self.deconvolved_ = TC_OUT
+            print("Done in %d seconds!" % (time.time() - t0))
+            #print("Structured sparsity spatial regularization not yet implemented")
         elif self.method_space is 'T':
             self.s_iter = 100
             TC_OUT = np.zeros_like(self.data)
