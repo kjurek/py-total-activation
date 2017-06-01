@@ -11,7 +11,7 @@ from joblib import Parallel, delayed
 
 from TotalActivation.filters import hrf
 from TotalActivation.process.temporal import wiener
-from TotalActivation.process.spatial import tikhonov
+from TotalActivation.process.spatial import tikhonov, strspr, strspr_vec
 from TotalActivation.preprocess.input import load_nifti, load_nifti_nomask, load_matlab_data, load_text_data
 from TotalActivation.process.parallel import parallel_temporalTA
 
@@ -44,9 +44,9 @@ class TotalActivation(object):
                    lowpass=None,
                    TR=2):
         """
-        Wrapper for loading all kinds of data
+        Wrapper for loading all kinds of example_data
         
-        :return: data or data + atlas in 2D 
+        :return: example_data or example_data + atlas in 2D 
         """
 
         if ftype is 'nifti':
@@ -104,7 +104,7 @@ class TotalActivation(object):
         Temporal regularization.
         """
 
-        assert d is not None, "Cannot run anything without loaded data!"
+        assert d is not None, "Cannot run anything without loaded example_data!"
 
         if self.method_time is 'B' or self.method_time is 'S':
             # _, coef = pywt.wavedec(d, 'db3', level=1, axis=0)
@@ -137,6 +137,8 @@ class TotalActivation(object):
 
         if self.method_space is 'T':
             self.deconvolved_ = tikhonov(d, a, self.data_masker, iter=self.s_iter)
+        elif self.method_space is 'S':
+            self.deconvolved_ = strspr_vec(d, a, self.data_masker, iter=self.s_iter, Lambda=self.Lambda)
         else:
             print("This spatial regularization method is not yet implemented")
 
