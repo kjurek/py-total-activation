@@ -117,6 +117,32 @@ def strspr(y, atlas, Lambda, Nit, IND, data_shape):
     return x_out
 
 
+def strspr_vec(y, atlas, masker, Lambda, iter):
+    y_vol = masker.inverse_transform(y)
+    _, H = get_h(y_vol.shape[0:3])
+
+    max_eig = 144.0
+
+    z = np.zeros_like(y_vol, dtype=complex)
+    y = np.zeros_like(y_vol, dtype=complex)
+
+    for k in range(1, iter):
+        z0 = z
+        z1 = 1.0 / (Lambda * max_eig)
+        z2 = ifftn(H[:, :, :, np.newaxis] * fftn(y_vol, y_vol.shape[0:3], axes=(0, 1, 2)), y_vol.shape[0:3],
+                   axes=(0, 1, 2))
+        z3 = ifftn(
+            H[:, :, :, np.newaxis] * np.conj(H)[:, :, :, np.newaxis] * fftn(y_vol, y_vol.shape[0:3], axes=(0, 1, 2)),
+            y_vol.shape[0:3], axes=(0, 1, 2))
+        z = clip_4d(z0 + z1 * z2 - z3 / max_eig, atlas)
+    y = y - Lambda * ifftn(np.conj(H)[:, :, :, np.newaxis] * fftn(y_vol, y_vol.shape[0:3], axes=(0, 1, 2)),
+                           y_vol.shape[0:3], axes=(0, 1, 2))
+
+    out = test.data_masker.transform(y)
+
+    return out
+
+
 def clip(in_, atlas):
     out = np.zeros(in_.shape, dtype=complex)
     for a in np.arange(1, np.max(atlas) + 1):
@@ -126,6 +152,18 @@ def clip(in_, atlas):
             out[ind] = in_[ind] / norm
         else:
             out[ind] = in_[ind]
+    return out
+
+
+def clip_4d(in_, atlas):
+    out = in_.copy()
+
+    for a in np.arange(1, np.max(atlas) + 1):
+        ind = np.where(atlas == a)
+        norm = np.linalg.norm(out[ind, :], 2, axis=3)
+        normind = np.where(norm > 1)[0]
+        out[ind, normind] = out[ind, normind] / norm[normind]
+
     return out
 
 
